@@ -1,0 +1,24 @@
+PASS  asset 200 /  — status=200
+PASS  asset 200 /app.bundle.js  — status=200
+PASS  asset 200 /config.js  — status=200
+PASS  asset 200 /styles.css  — status=200
+PASS  asset 200 /assets/wolf-coin.webp  — status=200
+PASS  asset 200 /assets/wolf-coin-hero.webp  — status=200
+PASS  asset 200 /favicon.svg  — status=200
+PASS  renders 10 collection cards  — count=10
+PASS  program id shown  — L3MrpyJhTLrJv57c2BcFH3vBbrrCnsakfwn6wHvzTz5
+PASS  X1 Wallet detected in UI  —  X1 Wallet X1 [connect, disconnect, signAndSendTransaction, isX1Wallet]
+PASS  confirm modal hidden at load  — none
+PASS  toast hidden at load  — none
+PASS  wallet card hidden before connect  — none
+PASS  live banner hidden in preview  — none
+PASS  CONNECT shows address + network  — WalletX1 Wallet (X1) Address2ovF3vdxQNkv2xFc1zoDQgwdTgyxeTeAbg6rgnFgXDeM NetworkX1 mainnet · https://rpc.mainnet.x1.xyz 
+PASS  supply read from chain (n/10)  — 0/10
+PASS  default mode is PREVIEW  — PREVIEW
+PASS  tx panel shows wallet/network/tx details  — ActionMINT (mint_coin)ModePREVIEW (simulate only — nothing sent)WalletX1 Wallet · 2ovF3vdxQNkv2xFc1zoDQgwdTgyxeTeAbg6rgnFgXDeMNetworkX1 main
+PASS  MINT RPC simulation err:null (end-to-end in browser)  — Simulation: OK (err: null) · units 130492
+PASS  0 console errors
+PASS  0 uncaught page errors
+PASS  0 failed requests
+
+ALL BROWSER CHECKS PASSED  (22 checks) against https://x1goose404-ops.github.io/wolf-coin-beta/

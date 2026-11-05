@@ -1,0 +1,8 @@
+sealed inscription: 5F1GrsYDZusa5y6QkFb3syevDKiaQVkVBRGJCn7mwMuG
+expected BLAKE3   : 1c870487914dc51dab1d5edba988c399960a3f464faa3bf3cdb396ce9d3b8f7c  (316818 bytes)
+
+OK   assets/wolf-coin.webp  316818 B  1c870487914dc51dab1d5edba988c399960a3f464faa3bf3cdb396ce9d3b8f7c  (sealed inscription artwork (canonical))
+---- assets/wolf-coin-hero.webp  400888 B  ca8e37e5a08e1c9911685b9ce4baf25bf2adcdcae236950011f6c89dfb7199d7  (beta hero artwork (not inscribed))
+---- assets/coin.png  7256 B  4f0cb8d3a8fad588fd106b3809d225553d133a388925622f51a94b59684093ba  (legacy coin art)
+
+canonical artwork matches the sealed inscription.

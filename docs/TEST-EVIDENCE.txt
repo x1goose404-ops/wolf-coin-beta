@@ -1,0 +1,66 @@
+WOLF COIN BETA — frontend test evidence
+=======================================
+Repo:  https://github.com/x1goose404-ops/wolf-coin-beta
+Live:  https://x1goose404-ops.github.io/wolf-coin-beta/
+Date:  2026-11-04
+Host:  Linux, Node v24.22.1, git 2.43.0 (no git-remote-https -> deploy via GitHub REST API)
+
+On-chain identity (UNCHANGED, NOT redeployed)
+  program  L3MrpyJhTLrJv57c2BcFH3vBbrrCnsakfwn6wHvzTz5   (executable on X1 mainnet)
+  registry HxLucJYBVDQ5EAYd4urHBGmxNbLBVGb79qFNBxVmLbi4   (collateral 5 XNT; minted 0 at test time)
+  RPC      https://rpc.mainnet.x1.xyz                      (solana-core 4.0.3)
+
+1) ARTWORK — BLAKE3 vs SEALED inscription  (npm run verify-art)  [PASS]
+$ tail docs/TEST-EVIDENCE-ART.txt
+sealed inscription: 5F1GrsYDZusa5y6QkFb3syevDKiaQVkVBRGJCn7mwMuG
+expected BLAKE3   : 1c870487914dc51dab1d5edba988c399960a3f464faa3bf3cdb396ce9d3b8f7c  (316818 bytes)
+
+OK   assets/wolf-coin.webp  316818 B  1c870487914dc51dab1d5edba988c399960a3f464faa3bf3cdb396ce9d3b8f7c  (sealed inscription artwork (canonical))
+---- assets/wolf-coin-hero.webp  400888 B  ca8e37e5a08e1c9911685b9ce4baf25bf2adcdcae236950011f6c89dfb7199d7  (beta hero artwork (not inscribed))
+---- assets/coin.png  7256 B  4f0cb8d3a8fad588fd106b3809d225553d133a388925622f51a94b59684093ba  (legacy coin art)
+
+canonical artwork matches the sealed inscription.
+
+2) INDEPENDENT ON-CHAIN SIMULATION  (npm run simulate, read-only, no signing/sending)  [PASS]
+   - Anchor discriminators re-derived from sha256("global:<name>")[0:8] and matched:
+       initialize_registry bdb51411ae39f93b · mint_coin 92aa4adda7ac84d5 · redeem b80c569546c461e1
+   - MINT (mint_coin), VersionedTransaction, vs live program: err:null, log "Instruction: MintCoin"
+   - TRANSFER (create-idempotent-ATA + SPL transfer 1): err:null
+   - REDEEM (redeem): program LOGS "Instruction: Redeem" and reaches the named `claim` account check
+     -> discriminator + account order verified. err is the EXPECTED AccountNotInitialized (3012)
+     because no serial has been minted yet (minted=0); err:null is impossible without a prior real mint.
+   Full output: docs/TEST-EVIDENCE-SIM.txt
+
+3) AUTOMATED BROWSER TEST — PUBLIC LIVE URL (scripts/test-browser.mjs, Chrome for Testing)  [PASS]
+   $ node scripts/test-browser.mjs https://x1goose404-ops.github.io/wolf-coin-beta/
+   ALL BROWSER CHECKS PASSED (22 checks)
+     - assets HTTP 200: / , app.bundle.js, config.js, styles.css, assets/wolf-coin.webp,
+       assets/wolf-coin-hero.webp, favicon.svg
+     - renders 10 collection cards; program id shown
+     - window.x1Wallet DETECTED in UI (X1 Wallet)
+     - CONNECT (mocked window.x1Wallet): shows address + "X1 mainnet · https://rpc.mainnet.x1.xyz"
+     - supply read from chain (0/10)
+     - default mode PREVIEW (nothing signed/sent)
+     - tx panel shows wallet/network/program/VersionedTransaction/effect BEFORE any signature
+     - MINT RPC simulation end-to-end in browser: "Simulation: OK (err: null)"
+     - 0 console errors · 0 uncaught page errors · 0 failed requests
+     - confirm modal / toast / wallet card / live banner are hidden at load (computed display:none)
+   Full output: docs/TEST-EVIDENCE-BROWSER.txt
+
+Root causes fixed
+  a) Wallet detection: Wallet-Standard-only discovery did not surface X1 Wallet. Replaced with the
+     verified theo-sign approach: window.x1Wallet first (provider.isX1Wallet), then window.backpack/window.xnft;
+     connect() + publicKey.toString(); sign via signAndSendTransaction(VersionedTransaction) [X1] or
+     signTransaction + sendRawTransaction(...,{skipPreflight:true}) [Backpack].
+  b) CSS: .modal{display:flex} / .card{display:flex} overrode the [hidden] attribute, so the confirm
+     dialog and wallet card leaked visibly. Fixed with `[hidden]{display:none !important}` and guarded by
+     a browser assertion.
+  c) Deploy: this host has no git-remote-https, so git push cannot work -> deploy via the GitHub REST API.
+  d) The archived deploy script targeted a MIS-NAMED repo (literal "wolf-c" + U+2026 + "site"); the clean
+     repo is x1goose404-ops/wolf-coin-beta.
+
+Limits / not claimed
+  - X1 Wallet is NOT declared "operational": connect/sign is verified only with a MOCKED window.x1Wallet.
+    Real-wallet verification is Victor's step (see click-by-click).
+  - REDEEM err:null cannot be produced against mainnet until serial 1 is really minted (involves spend).
+  - No transaction was signed, sent, or spent during this work. No on-chain program change/redeploy.

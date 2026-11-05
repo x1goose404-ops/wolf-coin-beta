@@ -1,0 +1,27 @@
+== 1. Anchor discriminators (independently re-derived) ==
+PASS  initializeRegistry == sha256("global:initialize_registry")[0:8]  — bdb51411ae39f93b
+PASS  mintCoin == sha256("global:mint_coin")[0:8]  — 92aa4adda7ac84d5
+PASS  redeem == sha256("global:redeem")[0:8]  — b80c569546c461e1
+
+== 2. Live registry account ==
+PASS  registry PDA matches config.registryId  — HxLucJYBVDQ5EAYd4urHBGmxNbLBVGb79qFNBxVmLbi4
+   registry: authority=2ovF3vdxQNkv2xFc1zoDQgwdTgyxeTeAbg6rgnFgXDeM collateral=5 XNT minted=0 redeemed=0 used=0
+PASS  registry collateral == 5 XNT
+
+== 3a. MINT (mint_coin) — VersionedTransaction vs live program ==
+   err: null units: 143992
+   log: Program log: Instruction: MintCoin
+PASS  MINT simulation err:null
+PASS  MINT logs show MintCoin
+
+== 3b. TRANSFER (create-idempotent-ATA + SPL transfer 1) ==
+   err: null units: 13931
+PASS  TRANSFER simulation err:null (ATA + SPL transfer valid)
+
+== 3c. REDEEM (redeem) — encoding recognised by live program ==
+   err: {"InstructionError":[1,{"Custom":3012}]}
+   log: Program log: Instruction: Redeem | Program log: AnchorError caused by account: claim. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized.
+PASS  REDEEM discriminator recognised (logs 'Instruction: Redeem')
+PASS  REDEEM fails only as expected (claim not initialized — serial unminted)  — {"InstructionError":[1,{"Custom":3012}]}
+
+ALL CHECKS PASSED
