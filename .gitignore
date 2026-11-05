@@ -1,0 +1,20 @@
+# build output & deps
+node_modules/
+
+# NEVER commit keys or secrets
+*-keypair.json
+**/*-keypair.json
+id.json
+id*.json
+.env
+.env.*
+!/.env.example
+*.pem
+*.key
+*.secret
+
+# os / editor
+.DS_Store
+*.swp
+.chrome-for-testing/
+shots/

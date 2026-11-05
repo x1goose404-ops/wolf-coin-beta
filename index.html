@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wolf Coin BETA — X1 (EXPERIMENTAL)</title>
+<meta name="description" content="Wolf Coin BETA — a 1-of-1 X1 NFT backed by exactly 5 XNT locked on-chain. Connect. Mint. Transfer. Redeem. EXPERIMENTAL / NOT AUDITED." />
+<meta name="theme-color" content="#0e0b08" />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="banner" role="alert">
+  ⚠️ <b>BETA — EXPERIMENTAL, NOT AUDITED.</b> Backing is <b>REAL XNT</b> on <span id="clusterLabel">X1</span>.
+  This website <b>never</b> asks for your seed phrase or private key.
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <img src="assets/wolf-coin.webp" alt="" class="brand__logo" width="36" height="36" />
+    <span class="brand__word">WOLF&nbsp;COIN <b>BETA</b></span>
+  </div>
+  <div class="topbar__right">
+    <span class="muted small" id="netlabel">X1 mainnet</span>
+    <span id="modeLabel" class="tag preview">PREVIEW</span>
+    <span id="walletPill" class="pill">not connected</span>
+    <button id="connectBtn" class="btn primary">Connect wallet</button>
+  </div>
+</header>
+
+<main>
+  <!-- ============================ HERO ============================ -->
+  <section class="hero">
+    <div class="hero__art"><img src="assets/wolf-coin-hero.webp" alt="Wolf Coin — 5 XNT BETA TEST EDITION artwork" width="1024" height="1024" /></div>
+    <div class="hero__copy">
+      <span class="tag beta">BETA TEST EDITION</span>
+      <h1>10 Wolf Coins, each backed by exactly <span class="hl">5&nbsp;XNT</span></h1>
+      <p>A <b>1-of-1 X1 NFT</b> with real <b>on-chain collateral</b> locked in a per-serial vault.
+         Ownership <b>is</b> the redemption right: whoever holds the NFT can return it and get the
+         exact backing back — no website, no creator, no admin required.</p>
+      <div class="stats">
+        <div class="stat"><div class="k">Supply</div><div class="v" id="supply">–/10</div></div>
+        <div class="stat"><div class="k">Mint cost (collateral)</div><div class="v" id="cost">5 XNT</div></div>
+        <div class="stat"><div class="k">Backing per coin</div><div class="v">5 XNT</div></div>
+      </div>
+      <div class="hero__cta">
+        <button class="btn primary" id="startBtn" onclick="document.getElementById('connect').scrollIntoView({behavior:'smooth'})">Start here</button>
+        <button class="btn" id="refreshBtn">Refresh on-chain state</button>
+      </div>
+      <label class="liveSwitch">
+        <input type="checkbox" id="liveToggle" />
+        <span>LIVE mode (sign &amp; send real transactions) — off = preview/simulate only</span>
+      </label>
+      <div id="netcheck" class="netcheck" hidden></div>
+      <p id="liveBanner" class="muted small" hidden>LIVE MODE is ON — transactions will be signed and <b>real XNT spent</b>. Only run this in an authorized beta.</p>
+    </div>
+  </section>
+
+  <!-- ===================== FIRST-TIME INSTRUCTIONS ===================== -->
+  <section id="how" class="panel">
+    <h2>First time? Do this in order</h2>
+    <ol class="steps">
+      <li><b>Install the X1 Wallet</b> browser extension and back up your recovery phrase <b>on paper</b>. This site never sees it.</li>
+      <li><b>Fund for real XNT.</b> Minting locks <b>5 XNT</b> of collateral, plus a small network fee and rent. On mainnet this is <b>real value</b>.</li>
+      <li><b>Press “Connect wallet”</b> (X1 Wallet is detected as <code>window.x1Wallet</code>). We read the vault balances publicly.</li>
+      <li><b>Mint a serial</b> (<code>BETA-0001</code>…<code>BETA-0010</code>) — review the transaction details, then confirm in your wallet.</li>
+      <li><b>Transfer</b> (moves the coin <i>and</i> the redemption right) or <b>Redeem</b> (permanently burns the NFT, returns exactly 5 XNT).</li>
+    </ol>
+  </section>
+
+  <!-- ============================ 1. CONNECT ============================ -->
+  <section id="connect" class="panel">
+    <h2>1 · Connect</h2>
+    <div class="sectionhead"><p class="muted small">X1 Wallet is preferred (detected first as <code>window.x1Wallet</code>), then Backpack (<code>window.backpack</code> / <code>window.xnft</code>).</p></div>
+    <div id="wallets" class="wallets"></div>
+    <div id="walletCard" class="card box" hidden></div>
+  </section>
+
+  <!-- ============================ 2. MINT ============================ -->
+  <section id="mint" class="panel">
+    <h2>2 · Mint</h2>
+    <div class="sectionhead">
+      <p class="muted small">Serials <code>BETA-0001</code>–<code>BETA-0010</code> · backing <b>5 XNT</b> each · artwork is the
+        <b>sealed X1 Vault inscription</b> <code id="artInscription">…</code> (bundled, BLAKE3 <code id="artHash">…</code>).</p>
+    </div>
+    <div id="grid" class="grid"></div>
+  </section>
+
+  <!-- ============================ 3. TRANSFER ============================ -->
+  <section id="transfer" class="panel">
+    <h2>3 · Transfer</h2>
+    <p class="muted small">Transferring sends the coin <b>and</b> the 5 XNT redemption right together. Recipient must be an on-curve wallet address.</p>
+    <div id="transferList" class="list"></div>
+  </section>
+
+  <!-- ============================ 4. REDEEM ============================ -->
+  <section id="redeem" class="panel">
+    <h2>4 · Redeem</h2>
+    <p class="warn small">Redeem <b>permanently burns</b> the NFT and retires the serial. This returns exactly <b>5 XNT</b> and cannot be undone.</p>
+    <div id="redeemList" class="list"></div>
+  </section>
+
+  <!-- ============================ TX PREVIEW ============================ -->
+  <section id="txpanel" class="panel">
+    <h2>Transaction details (review before signing)</h2>
+    <div id="txpanelBody" class="txbox"></div>
+  </section>
+
+  <!-- ============================ FAQ ============================ -->
+  <section id="faq" class="panel">
+    <h2>FAQ</h2>
+    <details><summary>What exactly am I buying?</summary>
+      <p>A 1-of-1 NFT (a real SPL token with Metaplex metadata, <code>max_supply = 1</code>) plus the <b>exact 5 XNT</b>
+      locked in a vault that only the current NFT holder can release.</p></details>
+    <details><summary>Is the collateral really on-chain?</summary>
+      <p>Yes. Each mint deposits exactly <code>collateral_lamports</code> (5 XNT) into a per-serial vault PDA. The
+      contract checks this on-chain — the website only helps you build the transaction.</p></details>
+    <details><summary>Can the team take my XNT or mint more later?</summary>
+      <p>No. The reviewed program exposes exactly three instructions — <code>initialize_registry</code>,
+      <code>mint_coin</code>, <code>redeem</code> — with no recovery, admin withdrawal or backdoor. Supply is capped
+      at 10 serials; each is minted once and retired after redeem.</p></details>
+    <details><summary>What happens if I burn the NFT in my wallet by accident?</summary>
+      <p>The redemption right is <b>lost</b> and the backing becomes unrecoverable. That is a deliberate design
+      choice. Use the site's <b>Redeem</b> to burn safely.</p></details>
+    <details><summary>Do you ever need my seed phrase?</summary>
+      <p>Never. This site has no backend and no keys. Your wallet signs; we only build the transaction.</p></details>
+  </section>
+
+  <!-- ============================ SECURITY ============================ -->
+  <section id="security" class="panel">
+    <h2>Security &amp; known limits</h2>
+    <ul class="limits">
+      <li><b>EXPERIMENTAL / NOT AUDITED.</b> Small public beta; no third-party audit.</li>
+      <li><b>REAL XNT on mainnet.</b> Wrong-address transfers, lost keys and accidental burns are permanent.</li>
+      <li><b>No recovery</b> if the NFT is burned outside Redeem — the collateral is stranded by design.</li>
+      <li>Never share a seed phrase. Verify program id <code id="progId">…</code> and registry <code id="regId">…</code> before signing.</li>
+    </ul>
+    <div id="log" class="log" aria-live="polite"></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>Wolf Coin BETA · program <code id="progIdFoot">L3MrpyJhTLrJv57c2BcFH3vBbrrCnsakfwn6wHvzTz5</code> · built from the reviewed Wolf Coin program. EXPERIMENTAL / NOT AUDITED.</p>
+</footer>
+
+<!-- CONFIRM -->
+<div id="confirm" class="modal" hidden>
+  <div class="modal__panel" role="dialog" aria-modal="true">
+    <h3 id="confirmTitle">Confirm</h3>
+    <div id="confirmBody"></div>
+    <div class="modal__actions">
+      <button class="btn" id="confirmNo">Cancel</button>
+      <button class="btn primary" id="confirmYes">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="app.bundle.js"></script>
+</body>
+</html>
