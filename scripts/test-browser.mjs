@@ -37,13 +37,16 @@ const browser = await puppeteer.launch({
 const page = await browser.newPage();
 await page.setViewport({ width: 1280, height: 1600 });
 
+const BASE = new URL(TARGET_URL).pathname.replace(/\/+$/, ""); // "" or "/wolf-coin-beta"
+const normPath = (p) => { if (BASE && p.startsWith(BASE)) p = p.slice(BASE.length) || "/"; return p.startsWith("/") ? p : "/" + p; };
+
 const consoleErrors = [], pageErrors = [], responses = new Map(), failed = [];
 page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text()); });
 page.on("pageerror", (e) => pageErrors.push(String(e && e.message || e)));
 page.on("requestfailed", (r) => failed.push(`${r.url()} :: ${r.failure()?.errorText}`));
 page.on("response", (r) => {
   const u = new URL(r.url());
-  if (u.origin === new URL(TARGET_URL).origin) responses.set(u.pathname, r.status());
+  if (u.origin === new URL(TARGET_URL).origin) responses.set(normPath(u.pathname), r.status());
 });
 
 // MOCK window.x1Wallet BEFORE any page script runs.
@@ -72,6 +75,16 @@ const progShown = await page.$eval("#progId", (e) => e.textContent).catch(() => 
 ck("program id shown", progShown === "L3MrpyJhTLrJv57c2BcFH3vBbrrCnsakfwn6wHvzTz5", progShown);
 const detectTxt = await page.$eval("#wallets", (e) => e.textContent);
 ck("X1 Wallet detected in UI", /X1 Wallet/.test(detectTxt), detectTxt.replace(/\s+/g, " ").slice(0, 80));
+
+// hidden elements must actually be hidden (guards against CSS overriding [hidden])
+const vis = await page.evaluate(() => {
+  const disp = (s) => { const e = document.querySelector(s); return e ? getComputedStyle(e).display : "missing"; };
+  return { confirm: disp("#confirm"), toast: disp("#toast"), walletCard: disp("#walletCard"), liveBanner: disp("#liveBanner") };
+});
+ck("confirm modal hidden at load", vis.confirm === "none", vis.confirm);
+ck("toast hidden at load", vis.toast === "none", vis.toast);
+ck("wallet card hidden before connect", vis.walletCard === "none", vis.walletCard);
+ck("live banner hidden in preview", vis.liveBanner === "none", vis.liveBanner);
 
 // --- CONNECT (mock) ---
 await page.evaluate(() => document.querySelector("#connectBtn").click());

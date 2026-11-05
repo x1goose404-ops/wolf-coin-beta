@@ -5,6 +5,7 @@
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
+[hidden]{display:none !important}
 html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 a{color:var(--accent2)}
 code,.mono{font-family:var(--mono);font-size:.86em;word-break:break-all}
